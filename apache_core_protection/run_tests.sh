@@ -1,9 +1,9 @@
 #!/bin/sh
 set -e
 
-docker build -t apache-core-protection .
-container_id=$(docker run -d -p 8080:80 apache-core-protection)
-# wait for the server to start
+# This script assumes the service has been started with
+# `docker-compose up --build -d` and is reachable on localhost:8080.
+# Wait briefly to ensure the server is ready.
 sleep 2
 
 status=0
@@ -18,6 +18,4 @@ code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/core.1234)
 code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/core.dump)
 [ "$code" = "403" ] || status=1
 
-# cleanup
-docker stop "$container_id"
 exit $status
