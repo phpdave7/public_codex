@@ -1,6 +1,6 @@
 # Apache Core Dump Protection Example
 
-This example demonstrates how to configure Apache so that core dump files cannot be downloaded. The `Dockerfile` builds a container running Apache with a custom configuration in `httpd.conf` that denies access to files starting with `core`.
+This example demonstrates how to configure Apache so that core dump files cannot be downloaded. The `Dockerfile` adds a small configuration snippet that is included in Apache's default `httpd.conf` to deny access to files starting with `core`.
 
 ## Usage
 
