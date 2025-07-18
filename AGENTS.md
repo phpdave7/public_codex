@@ -6,5 +6,7 @@ When responding to new requests, the agent should create or choose a folder whos
 
 Each example folder must include a `docker-compose.yml` so that running `docker-compose up --build` will start the example environment. The test scripts assume the corresponding compose service is already running.
 
-For completeness, examples should also include a separate folder demonstrating how to accomplish the same task in the IBM i PASE environment available on [PUB400.com](https://pub400.com/).
+### IBM i PASE (PUB400.com)
+
+Include a `pub400` subfolder **only** when the request specifically involves IBM i or IBM i PASE. AWS-focused examples should not contain a `pub400` folder.
 

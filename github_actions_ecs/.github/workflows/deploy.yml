@@ -1,0 +1,56 @@
+name: Build and Deploy to ECS
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Show debug info
+        env:
+          DEPLOY_ENV: ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
+        run: |
+          echo "GitHub ref: $GITHUB_REF"
+          echo "Deploy environment: $DEPLOY_ENV"
+          echo "AWS Region: $AWS_REGION"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build and push image
+        env:
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+        run: |
+          IMAGE=$ECR_REPOSITORY:$(git rev-parse --short "$GITHUB_SHA")
+          docker build -t "$IMAGE" .
+          docker push "$IMAGE"
+          echo "image=$IMAGE" >> "$GITHUB_ENV"
+          echo "Built image $IMAGE"
+
+      - name: Show ECS parameters
+        run: |
+          echo "Cluster: ${{ secrets.ECS_CLUSTER }}"
+          echo "Service: ${{ secrets.ECS_SERVICE }}"
+          echo "Image: $IMAGE"
+
+      - name: Deploy to ECS
+        env:
+          CLUSTER: ${{ secrets.ECS_CLUSTER }}
+          SERVICE: ${{ secrets.ECS_SERVICE }}
+        run: |
+          aws ecs update-service --cluster "$CLUSTER" --service "$SERVICE" \
+            --force-new-deployment --region "$AWS_REGION"
